@@ -4,6 +4,14 @@ orbs:
   aws-cli: circleci/aws-cli@4.0.0 # use v4 of this orb
   aws-ecr: circleci/aws-ecr@8.2.1 # this orb doesn't support OIDC v2, so we use aws-cli to authenticate
 
+executors:
+  docker-publisher:
+    environment:
+      IMAGE_NAME: cica-repo-dev
+    docker:
+      # Image tool container
+      - image: ministryofjustice/cloud-platform-tools
+
 jobs:
   push_image:
     executor: aws-ecr/default # use the aws-ecr/default executor to start the docker daemon
