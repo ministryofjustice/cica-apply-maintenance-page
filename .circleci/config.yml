@@ -124,7 +124,7 @@ jobs:
           name: Deploy to the cluster
           command: |
             echo "deploy before aws ecr"
-            kubectl set image -f kube_deploy/maintenance-deploy.yaml cica-maintenance-page=${ECR_REGISTRY}/cica-maintenance-page:${CIRCLE_SHA1} --local -o yaml \
+            kubectl set image -f kube_deploy/maintenance-deploy.yaml cica-maintenance-page=${ECR_REGISTRY}/${ECR_REPOSITORY}:${CIRCLE_SHA1} --local -o yaml \
             | kubectl apply -f -
             kubectl apply \
                 -f kube_deploy/maintenance-service.yaml \
@@ -148,7 +148,7 @@ jobs:
           name: Deploy to the cluster
           command: |
             echo "deploy before aws ecr"
-            kubectl set image -f kube_deploy/maintenance-deploy.yaml cica-maintenance-page=${ECR_REGISTRY}/cica-maintenance-page:${CIRCLE_SHA1} --local -o yaml \
+            kubectl set image -f kube_deploy/maintenance-deploy.yaml cica-maintenance-page=${ECR_REGISTRY}/${ECR_REPOSITORY}:${CIRCLE_SHA1} --local -o yaml \
             | kubectl apply -f -
             kubectl apply \
                 -f kube_deploy/maintenance-service.yaml \
@@ -172,7 +172,7 @@ jobs:
           name: Deploy to the cluster
           command: |
             echo "deploy before aws ecr"
-            kubectl set image -f kube_deploy/maintenance-deploy.yaml cica-maintenance-page=${ECR_REGISTRY}/cica-maintenance-page:${CIRCLE_SHA1} --local -o yaml \
+            kubectl set image -f kube_deploy/maintenance-deploy.yaml cica-maintenance-page=${ECR_REGISTRY}/${ECR_REPOSITORY}:${CIRCLE_SHA1} --local -o yaml \
             | kubectl apply -f -
             kubectl apply \
                 -f kube_deploy/maintenance-service.yaml \
@@ -204,7 +204,7 @@ workflows:
       - deploy_to_prod_approval:
           type: approval
           requires:
-            - deploy_to_dev
+            - push_image
       - deploy_to_prod:
           requires:
             - deploy_to_prod_approval
