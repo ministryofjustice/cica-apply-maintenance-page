@@ -32,6 +32,7 @@ jobs:
           root: .
           paths:
             - bash.env
+      -setup remote docker
       - run:
           name: Build docker image
           command: |
