@@ -40,7 +40,7 @@ jobs:
       - run:
           name: Archive Docker Image
           command: |
-            docker save -o image.tar cica/cica-maintenance-page:latest
+            docker save -o image.tar cica/cica-repo-dev:latest
       - persist_to_workspace:
           root: .
           paths:
