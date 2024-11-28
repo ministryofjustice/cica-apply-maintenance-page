@@ -14,8 +14,7 @@ executors:
       - image: ministryofjustice/cloud-platform-tools
 jobs:
   build:
-    executor: docker-publisher
-        docker:
+    docker:
       - image: node:22.8.0-bookworm-slim
     steps:
       - checkout
