@@ -36,7 +36,7 @@ jobs:
       - run:
           name: Build docker image
           command: |
-            docker build --target production --no-cache -t cica/cica-repo-dev .
+            docker build --no-cache -t cica/cica-repo-dev .
       - run:
           name: Archive Docker Image
           command: |
