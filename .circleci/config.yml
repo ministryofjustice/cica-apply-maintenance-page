@@ -57,7 +57,7 @@ jobs:
       - run:
           name: Test the container
           command: |
-            docker run -d -p 3001:3001 --restart=always --name cica-maintenance-page cica/cica-maintenance-page:latest
+            docker run -d -p 3001:3001 --restart=always --name cica-maintenance-page cica/cica-repo-dev:latest
             docker ps
             docker stop cica-maintenance-page
             docker ps
