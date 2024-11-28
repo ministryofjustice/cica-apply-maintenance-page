@@ -18,6 +18,7 @@ jobs:
       - image: 'cimg/ruby:3.1.3-node'
     steps:
       - checkout
+      - setup_remote_docker
       - aws-cli/setup:
           role_arn: $ECR_ROLE_TO_ASSUME # this will use the env var
           region: $ECR_REGION # this will use the env var
@@ -32,7 +33,6 @@ jobs:
           root: .
           paths:
             - bash.env
-      -setup remote docker
       - run:
           name: Build docker image
           command: |
