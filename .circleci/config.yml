@@ -15,6 +15,8 @@ executors:
 jobs:
   build:
     executor: docker-publisher
+        docker:
+      - image: node:22.8.0-bookworm-slim
     steps:
       - checkout
       - aws-cli/setup:
