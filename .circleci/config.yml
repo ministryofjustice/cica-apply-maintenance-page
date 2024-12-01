@@ -180,7 +180,11 @@ workflows:
   version: 2
   build-test-push-deploytouatapproval-deployuat-deploytoprodapproval-deployprod:
     jobs:
-      - build
+      - build:
+          filters:
+            branches:
+              only:
+                - main
       - publish_latest:
           requires:
             - build
