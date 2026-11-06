@@ -1,0 +1,140 @@
+name: Validate Build and Deploy
+
+on:
+  push:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  security:
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    uses: ministryofjustice/cica-devsecops-workflows/.github/workflows/reusable-security.yml@80a46532ac2f538d5ddb056188637cefd839fa42 # set-up-maintenance-page (testing, switch to v1.0.12 once tagged)
+    with:
+      snyk-api-url: ${{ vars.SNYK_API_URL || 'https://api.snyk.io' }}
+      snyk-open-source-enabled: false
+      snyk-code-enabled: false
+      run-snyk-monitor: false
+    secrets:
+      SNYK_CLIENT_ID: ${{ secrets.SNYK_CLIENT_ID }}
+      SNYK_CLIENT_SECRET: ${{ secrets.SNYK_CLIENT_SECRET }}
+
+  container:
+    needs: security
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    uses: ministryofjustice/cica-devsecops-workflows/.github/workflows/reusable-container.yml@80a46532ac2f538d5ddb056188637cefd839fa42 # set-up-maintenance-page (testing, switch to v1.0.12 once tagged)
+    with:
+      image-name: cica/cica-repo-dev
+      smoke-test-container-port: 8080
+      snyk-api-url: ${{ vars.SNYK_API_URL || 'https://api.snyk.io' }}
+    secrets:
+      SNYK_CLIENT_ID: ${{ secrets.SNYK_CLIENT_ID }}
+      SNYK_CLIENT_SECRET: ${{ secrets.SNYK_CLIENT_SECRET }}
+
+  publish:
+    needs: container
+    if: |
+      github.ref == 'refs/heads/main' ||
+      github.ref == 'refs/heads/maintenance-page-deploy-to-staging'
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    uses: ministryofjustice/cica-devsecops-workflows/.github/workflows/reusable-publish.yml@80a46532ac2f538d5ddb056188637cefd839fa42 # set-up-maintenance-page (testing, switch to v1.0.12 once tagged)
+    with:
+      image-name: cica/cica-repo-dev
+      ecr-region: ${{ vars.ECR_REGION }}
+      ecr-repository: ${{ vars.ECR_REPOSITORY }}
+      ecr-registry-url: ${{ vars.ECR_REGISTRY_URL }}
+      run-container-monitor: ${{ github.ref == 'refs/heads/main' }}
+      snyk-api-url: ${{ vars.SNYK_API_URL || 'https://api.snyk.io' }}
+    secrets:
+      ECR_ROLE_TO_ASSUME: ${{ secrets.ECR_ROLE_TO_ASSUME }}
+      SNYK_CLIENT_ID: ${{ secrets.SNYK_CLIENT_ID }}
+      SNYK_CLIENT_SECRET: ${{ secrets.SNYK_CLIENT_SECRET }}
+
+  deploy-dev:
+    needs: publish
+    if: github.ref == 'refs/heads/main'
+    uses: ministryofjustice/cica-devsecops-workflows/.github/workflows/reusable-deploy-kubernetes.yml@80a46532ac2f538d5ddb056188637cefd839fa42 # set-up-maintenance-page (testing, switch to v1.0.12 once tagged)
+    with:
+      environment: dev
+      namespace: claim-criminal-injuries-compensation-dev
+      manifest-dir: kube_deploy/Dev
+      deploy-manifest: maintenance-deploy.yaml
+      service-manifest: maintenance-service.yaml
+      container-name: cica-maintenance-page
+      image-uri: ${{ needs.publish.outputs.image-uri }}
+      configmap-name: maintenance-config
+      configmap-from-file: index.html
+    secrets:
+      KUBE_CERT: ${{ secrets.KUBE_CERT }}
+      KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER }}
+      KUBE_TOKEN: ${{ secrets.KUBE_TOKEN }}
+
+  deploy-uat:
+    needs: [publish, deploy-dev]
+    if: github.ref == 'refs/heads/main'
+    uses: ministryofjustice/cica-devsecops-workflows/.github/workflows/reusable-deploy-kubernetes.yml@80a46532ac2f538d5ddb056188637cefd839fa42 # set-up-maintenance-page (testing, switch to v1.0.12 once tagged)
+    with:
+      environment: uat
+      namespace: claim-criminal-injuries-compensation-uat
+      manifest-dir: kube_deploy/Uat
+      deploy-manifest: maintenance-deploy.yaml
+      service-manifest: maintenance-service.yaml
+      container-name: cica-maintenance-page
+      image-uri: ${{ needs.publish.outputs.image-uri }}
+      configmap-name: maintenance-config
+      configmap-from-file: index.html
+    secrets:
+      KUBE_CERT: ${{ secrets.KUBE_CERT }}
+      KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER }}
+      KUBE_TOKEN: ${{ secrets.KUBE_TOKEN }}
+
+  deploy-prod:
+    needs: [publish, deploy-uat]
+    if: github.ref == 'refs/heads/main'
+    uses: ministryofjustice/cica-devsecops-workflows/.github/workflows/reusable-deploy-kubernetes.yml@80a46532ac2f538d5ddb056188637cefd839fa42 # set-up-maintenance-page (testing, switch to v1.0.12 once tagged)
+    with:
+      environment: prod
+      namespace: claim-criminal-injuries-compensation-prod
+      manifest-dir: kube_deploy/Prod
+      deploy-manifest: maintenance-deploy.yaml
+      service-manifest: maintenance-service.yaml
+      container-name: cica-maintenance-page
+      image-uri: ${{ needs.publish.outputs.image-uri }}
+      configmap-name: maintenance-config
+      configmap-from-file: index.html
+    secrets:
+      KUBE_CERT: ${{ secrets.KUBE_CERT }}
+      KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER }}
+      KUBE_TOKEN: ${{ secrets.KUBE_TOKEN }}
+
+  deploy-staging:
+    needs: publish
+    if: github.ref == 'refs/heads/maintenance-page-deploy-to-staging'
+    uses: ministryofjustice/cica-devsecops-workflows/.github/workflows/reusable-deploy-kubernetes.yml@80a46532ac2f538d5ddb056188637cefd839fa42 # set-up-maintenance-page (testing, switch to v1.0.12 once tagged)
+    with:
+      environment: staging
+      namespace: claim-criminal-injuries-compensation-stag
+      manifest-dir: kube_deploy/Stag
+      deploy-manifest: maintenance-deploy.yaml
+      service-manifest: maintenance-service.yaml
+      container-name: cica-maintenance-page
+      image-uri: ${{ needs.publish.outputs.image-uri }}
+      configmap-name: maintenance-config
+      configmap-from-file: index.html
+    secrets:
+      KUBE_CERT: ${{ secrets.KUBE_CERT }}
+      KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER }}
+      KUBE_TOKEN: ${{ secrets.KUBE_TOKEN }}
