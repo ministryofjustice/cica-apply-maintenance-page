@@ -20,6 +20,7 @@ jobs:
     with:
       snyk-api-url: ${{ vars.SNYK_API_URL || 'https://api.snyk.io' }}
       snyk-open-source-enabled: false
+      snyk-code-enabled: false
       run-snyk-monitor: false
     secrets:
       SNYK_CLIENT_ID: ${{ secrets.SNYK_CLIENT_ID }}
