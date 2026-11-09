@@ -16,7 +16,7 @@ jobs:
       contents: read
       security-events: write
       actions: read
-    uses: ministryofjustice/cica-devsecops-workflows/.github/workflows/reusable-security.yml@0c2627c7d7c39d1278132c6afa0b29cf202570fe # set-up-maintenance-page (testing, switch to v1.0.12 once tagged)
+    uses: ministryofjustice/cica-devsecops-workflows/.github/workflows/reusable-security.yml@v1.0.12
     with:
       snyk-api-url: ${{ vars.SNYK_API_URL || 'https://api.snyk.io' }}
       snyk-open-source-enabled: false
@@ -32,7 +32,7 @@ jobs:
       contents: read
       security-events: write
       actions: read
-    uses: ministryofjustice/cica-devsecops-workflows/.github/workflows/reusable-container.yml@0c2627c7d7c39d1278132c6afa0b29cf202570fe # set-up-maintenance-page (testing, switch to v1.0.12 once tagged)
+    uses: ministryofjustice/cica-devsecops-workflows/.github/workflows/reusable-container.yml@v1.0.12
     with:
       image-name: cica/cica-repo-dev
       smoke-test-container-port: 8080
@@ -50,7 +50,7 @@ jobs:
       contents: read
       id-token: write
       attestations: write
-    uses: ministryofjustice/cica-devsecops-workflows/.github/workflows/reusable-publish.yml@0c2627c7d7c39d1278132c6afa0b29cf202570fe # set-up-maintenance-page (testing, switch to v1.0.12 once tagged)
+    uses: ministryofjustice/cica-devsecops-workflows/.github/workflows/reusable-publish.yml@v1.0.12
     with:
       image-name: cica/cica-repo-dev
       ecr-region: ${{ vars.ECR_REGION }}
@@ -66,7 +66,7 @@ jobs:
   deploy-dev:
     needs: publish
     if: github.ref == 'refs/heads/main'
-    uses: ministryofjustice/cica-devsecops-workflows/.github/workflows/reusable-deploy-kubernetes.yml@0c2627c7d7c39d1278132c6afa0b29cf202570fe # set-up-maintenance-page (testing, switch to v1.0.12 once tagged)
+    uses: ministryofjustice/cica-devsecops-workflows/.github/workflows/reusable-deploy-kubernetes.yml@v1.0.12
     with:
       environment: dev
       namespace: claim-criminal-injuries-compensation-dev
@@ -85,7 +85,7 @@ jobs:
   deploy-uat:
     needs: [publish, deploy-dev]
     if: github.ref == 'refs/heads/main'
-    uses: ministryofjustice/cica-devsecops-workflows/.github/workflows/reusable-deploy-kubernetes.yml@0c2627c7d7c39d1278132c6afa0b29cf202570fe # set-up-maintenance-page (testing, switch to v1.0.12 once tagged)
+    uses: ministryofjustice/cica-devsecops-workflows/.github/workflows/reusable-deploy-kubernetes.yml@v1.0.12
     with:
       environment: uat
       namespace: claim-criminal-injuries-compensation-uat
@@ -104,7 +104,7 @@ jobs:
   deploy-prod:
     needs: [publish, deploy-uat]
     if: github.ref == 'refs/heads/main'
-    uses: ministryofjustice/cica-devsecops-workflows/.github/workflows/reusable-deploy-kubernetes.yml@0c2627c7d7c39d1278132c6afa0b29cf202570fe # set-up-maintenance-page (testing, switch to v1.0.12 once tagged)
+    uses: ministryofjustice/cica-devsecops-workflows/.github/workflows/reusable-deploy-kubernetes.yml@v1.0.12
     with:
       environment: prod
       namespace: claim-criminal-injuries-compensation-prod
@@ -123,7 +123,7 @@ jobs:
   deploy-staging:
     needs: publish
     if: github.ref == 'refs/heads/maintenance-page-deploy-to-staging'
-    uses: ministryofjustice/cica-devsecops-workflows/.github/workflows/reusable-deploy-kubernetes.yml@0c2627c7d7c39d1278132c6afa0b29cf202570fe # set-up-maintenance-page (testing, switch to v1.0.12 once tagged)
+    uses: ministryofjustice/cica-devsecops-workflows/.github/workflows/reusable-deploy-kubernetes.yml@v1.0.12
     with:
       environment: staging
       namespace: claim-criminal-injuries-compensation-stag
